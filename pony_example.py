@@ -1,9 +1,11 @@
-import pony.orm as pony
+#bultin library
 import os
 
+#external libraries
+import pony.orm as pony
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-PONY_DATABASE_URI = os.path.join(basedir, 'weddings.db')
+PONY_DATABASE_URI = os.path.join(basedir, 'pony.db')
 
 database = pony.Database(
     "sqlite",
@@ -14,9 +16,9 @@ database = pony.Database(
 class User(database.Entity):
     """User, it is asociated with the posts, comments and replies he makes"""
 
-    nickname = pony.Required(unicode, unique=True)
-    password = pony.Required(unicode)
-    email = pony.Required(unicode, unique=True)
+    nickname = pony.Required(str, unique=True)
+    password = pony.Required(str)
+    email = pony.Required(str, unique=True)
 
     posts = pony.Set("Post")
     comments = pony.Set("Comment")
@@ -28,8 +30,8 @@ class User(database.Entity):
 
 class Post(database.Entity):
 
-    title = pony.Required(unicode)
-    body = pony.Required(unicode)
+    title = pony.Required(str)
+    body = pony.Required(pony.LongStr)
 
     user = pony.Required(User)
 
@@ -40,8 +42,8 @@ class Post(database.Entity):
 
 class Comment(database.Entity):
 
-    title = pony.Required(unicode)
-    body = pony.Required(unicode)
+    title = pony.Required(str)
+    body = pony.Required(pony.LongStr)
 
     user = pony.Required(User)
     post = pony.Required(Post)
@@ -54,7 +56,7 @@ class Comment(database.Entity):
 
 class Reply(database.Entity):
 
-    body = pony.Required(unicode)
+    body = pony.Required(pony.LongStr)
 
     user = pony.Required(User)
     comment = pony.Required(Comment)
