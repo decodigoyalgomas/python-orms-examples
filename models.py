@@ -1,7 +1,7 @@
-#bultin library
+# bultin library
 import os
 
-#external libraries
+# external libraries
 import pony.orm as pony
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -13,7 +13,9 @@ database = pony.Database(
     create_db=True
 )
 
+
 class User(database.Entity):
+
     """User, it is asociated with the posts, comments and replies he makes"""
 
     nickname = pony.Required(str, unique=True)
@@ -35,10 +37,11 @@ class Post(database.Entity):
 
     user = pony.Required(User)
 
-    comments  = pony.Set("Comment")
+    comments = pony.Set("Comment")
 
     def __repr__(self):
         return '<Post {}, with title "{}">'.format(self.id, self.title)
+
 
 class Comment(database.Entity):
 
@@ -64,3 +67,9 @@ class Reply(database.Entity):
     def __repr__(self):
         return 'Reply {}, to comment {}'.format(self.id, self.comment)
 
+
+# enciende el debug
+pony.sql_debug(True)
+
+# crea la tabla si no existe
+database.generate_mapping(create_tables=True)
