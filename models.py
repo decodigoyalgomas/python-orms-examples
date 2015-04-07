@@ -1,26 +1,25 @@
-# bultin library
-import os
+from sqlalchemy import create_engine
 
-# external libraries
-import pony.orm as pony
+#in memory only sqlite db
+engine = create_engine('sqlite:///:memory:', echo=True)
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-PONY_DATABASE_URI = os.path.join(basedir, 'pony.db')
+# Lazy Connecting
+# The Engine, when first returned by create_engine(), has not actually tried to connect to the database yet; that happens only the first time it is asked to perform a task against the database.
 
-database = pony.Database(
-    "sqlite",
-    PONY_DATABASE_URI,
-    create_db=True
-)
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
 
+from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship, backref
 
-class User(database.Entity):
+class User(Base):
+    __tablename__ = 'users'
 
-    """User, it is asociated with the posts, comments and replies he makes"""
-
-    nickname = pony.Required(str, unique=True)
-    password = pony.Required(str)
-    email = pony.Required(str, unique=True)
+    id = Column(Integer, primary_key=True)
+    nickname = Column(String(50), unique=True)
+    password = Column(String(50))
+    email = Column(String(50))
 
     posts = pony.Set("Post")
     comments = pony.Set("Comment")
@@ -30,23 +29,31 @@ class User(database.Entity):
         return '<User {}, with email: {}>'.format(self.nickname, self.email)
 
 
-class Post(database.Entity):
+class Post(Base):
 
-    title = pony.Required(str)
-    body = pony.Required(pony.LongStr)
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(255))
+    body = Column(Text)
 
-    user = pony.Required(User)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    comment_id = Column(Integer, ForeignKey('comments.id'))
 
-    comments = pony.Set("Comment")
+    user = Relationship("User", backref=backref('users', order_by=id))
+    comment = Relationship("Comment", backref=backref('comments', order_by=id))
+    
 
     def __repr__(self):
         return '<Post {}, with title "{}">'.format(self.id, self.title)
 
 
-class Comment(database.Entity):
+class Comment(Base):
 
-    title = pony.Required(str)
-    body = pony.Required(pony.LongStr)
+    __tablename__ = 'comments'
+    id = Column(Integer, primary_key=True)
+
+    title = Column(String(255))
+    body = Column(Text)
 
     user = pony.Required(User)
     post = pony.Required(Post)
@@ -57,9 +64,12 @@ class Comment(database.Entity):
         return '<Comment {}, with title "{}">'.format(self.id, self.title)
 
 
-class Reply(database.Entity):
+class Reply(Base):
 
-    body = pony.Required(pony.LongStr)
+    __tablename__ = 'replies'
+    id = Column(Integer, primary_key=True)
+
+    body = Column(Text)
 
     user = pony.Required(User)
     comment = pony.Required(Comment)
@@ -67,9 +77,3 @@ class Reply(database.Entity):
     def __repr__(self):
         return 'Reply {}, to comment {}'.format(self.id, self.comment)
 
-
-# enciende el debug
-pony.sql_debug(True)
-
-# crea la tabla si no existe
-database.generate_mapping(create_tables=True)
