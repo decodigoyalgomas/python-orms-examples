@@ -131,4 +131,7 @@ def add_data():
 
 
 if __name__ == '__main__':
-    add_data()
+    try:
+        add_data()
+    except:
+        print "La data ya estaba subida"
